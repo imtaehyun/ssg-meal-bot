@@ -30,7 +30,7 @@ if firebase_url is None:
 line_bot_api = LineBotApi(channel_access_token)
 handler = WebhookHandler(channel_secret)
 
-firebase = firebase.FirebaseApplication(firebase, None)
+firebase = firebase.FirebaseApplication(firebase_url, None)
 
 @app.route("/callback", methods=['POST'])
 def callback():
