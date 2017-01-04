@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
-from argparse import ArgumentParser
 from datetime import datetime
 
 from flask import Flask, request, abort
@@ -53,33 +52,45 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def message_text(event):
     print(event)
-    print("id: {}".format(event.message.id))
 
-    now = datetime.today()
-    today_date = now.strftime('%Y%m%d')
-
-    print(today_date)
-    result = firebase.get('/menus/' + today_date, None)
-    message = ''
-    if result:
-        message = result
+    msg = None
+    if event.message.type == 'join':
+        pass
+    elif '메뉴' in event.message.text:
+        date = event.message.text.replace('메뉴', '').strip()
+        msg = get_menu_text(date)
     else:
-        message = '등록된 메뉴가 없습니다.'
+        pass
 
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text=str(message))
-    )
+    if msg:
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text=str(msg))
+        )
+
+
+def get_menu_text(date=None):
+    if not date or len(date) != 8:
+        now = datetime.today()
+        date = now.strftime('%Y%m%d')
+
+    result = firebase.get('/menus/' + date, None)
+
+    if result:
+        message = [date + ' 식당 메뉴\n']
+
+        for key, value in result.items():
+            message.append("[{}]".format(key))
+            for menu in value:
+                message.append(menu)
+            message.append(" ")
+
+        return "\n".join(message)
+    else:
+        return '등록된 메뉴가 없습니다.'
 
 
 if __name__ == "__main__":
-    # arg_parser = ArgumentParser(
-    #     usage='Usage: python ' + __file__ + ' [--port <port>] [--help]'
-    # )
-    # arg_parser.add_argument('-p', '--port', default=8000, help='port')
-    # arg_parser.add_argument('-d', '--debug', default=False, help='debug')
-    # options = arg_parser.parse_args()
-
     port = int(os.getenv('PORT', 8000))
 
     app.run(host='0.0.0.0', port=port, debug=True)
