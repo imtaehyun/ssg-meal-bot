@@ -11,7 +11,6 @@ from firebase import firebase
 
 app = Flask(__name__)
 
-# get channel_secret and channel_access_token from your environment variable
 channel_secret = os.getenv('LINE_CHANNEL_SECRET', None)
 channel_access_token = os.getenv('LINE_CHANNEL_ACCESS_TOKEN', None)
 firebase_url = os.getenv('FIREBASE_URL', None)
@@ -77,12 +76,12 @@ def get_menu_text(date=None):
     result = firebase.get('/menus/' + date, None)
 
     if result:
-        message = [date + ' 식당 메뉴\n']
+        message = ['{} 식당 메뉴\n'.format(date)]
 
         for key, value in result.items():
             message.append("[{}]".format(key))
             for menu in value:
-                message.append(menu)
+                message.append("* {}".format(menu))
             message.append(" ")
 
         return "\n".join(message)
